@@ -180,14 +180,18 @@ if __name__ == "__main__":
         register_env(temp_env_name, lambda _: FlockAviary(num_drones=NUM_DRONES,
                                                           aggregate_phy_steps=shared_constants.AGGR_PHY_STEPS,
                                                           obs=OBS,
-                                                          act=ACT
+                                                          act=ACT,
+                                                          gui=False, 
+                                                          record=True
                                                           )
                      )
     elif ARGS.exp.split("-")[1] == 'leaderfollower':
         register_env(temp_env_name, lambda _: LeaderFollowerAviary(num_drones=NUM_DRONES,
                                                                    aggregate_phy_steps=shared_constants.AGGR_PHY_STEPS,
                                                                    obs=OBS,
-                                                                   act=ACT
+                                                                   act=ACT,
+                                                                   gui=False,
+                                                                   record=True
                                                                    )
                      )
     elif ARGS.exp.split("-")[1] == 'meetup':
@@ -235,7 +239,7 @@ if __name__ == "__main__":
     config = {
         "env": temp_env_name,
         "num_workers": 0, #0+ARGS.workers,
-        "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "0")), # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0
+        "num_gpus": int(os.environ.get("RLLIB_NUM_GPUS", "2")), # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0
         "batch_mode": "complete_episodes",
         "callbacks": FillInActions,
         "framework": "torch",
@@ -276,24 +280,24 @@ if __name__ == "__main__":
                                aggregate_phy_steps=shared_constants.AGGR_PHY_STEPS,
                                obs=OBS,
                                act=ACT,
-                               gui=True,
-                               record=False
+                               gui=False,
+                               record=True
                                )
     elif ARGS.exp.split("-")[1] == 'leaderfollower':
         test_env = LeaderFollowerAviary(num_drones=NUM_DRONES,
                                         aggregate_phy_steps=shared_constants.AGGR_PHY_STEPS,
                                         obs=OBS,
                                         act=ACT,
-                                        gui=True,
-                                        record=False
+                                        gui=False,
+                                        record=True
                                         )
     elif ARGS.exp.split("-")[1] == 'meetup':
         test_env = MeetupAviary(num_drones=NUM_DRONES,
                                 aggregate_phy_steps=shared_constants.AGGR_PHY_STEPS,
                                 obs=OBS,
                                 act=ACT,
-                                gui=True,
-                                record=False
+                                gui=False,
+                                record=True
                                 )
     else:
         print("[ERROR] environment not yet implemented")
@@ -319,9 +323,11 @@ if __name__ == "__main__":
         temp = {}
         temp[0] = policy0.compute_single_action(np.hstack([action[1], obs[1], obs[0]])) # Counterintuitive order, check params.json
         temp[1] = policy1.compute_single_action(np.hstack([action[0], obs[0], obs[1]]))
-        action = {0: temp[0][0], 1: temp[1][0]}
+        action = {0: temp[0][0]}
+        for i in range(1, NUM_DRONES):
+                     action[i] = temp[1][0]
         obs, reward, done, info = test_env.step(action)
-        test_env.render()
+        #test_env.render()
         if OBS==ObservationType.KIN: 
             for j in range(NUM_DRONES):
                 logger.log(drone=j,
@@ -333,7 +339,7 @@ if __name__ == "__main__":
         # if done["__all__"]: obs = test_env.reset() # OPTIONAL EPISODE HALT
     test_env.close()
     logger.save_as_csv("ma") # Optional CSV save
-    logger.plot()
+    #logger.plot()
 
     #### Shut down Ray #########################################
     ray.shutdown()
