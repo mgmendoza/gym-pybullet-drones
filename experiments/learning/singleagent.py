@@ -45,6 +45,7 @@ from gym_pybullet_drones.envs.single_agent_rl.TakeoffAviary import TakeoffAviary
 from gym_pybullet_drones.envs.single_agent_rl.HoverAviary import HoverAviary
 from gym_pybullet_drones.envs.single_agent_rl.FlyThruGateAviary import FlyThruGateAviary
 from gym_pybullet_drones.envs.single_agent_rl.TuneAviary import TuneAviary
+from gym_pybullet_drones.envs.single_agent_rl.FlyToObstacleAviary import FlyToObstacleAviary
 from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType
 
 import shared_constants
@@ -56,7 +57,7 @@ if __name__ == "__main__":
 
     #### Define and parse (optional) arguments for the script ##
     parser = argparse.ArgumentParser(description='Single agent reinforcement learning experiments script')
-    parser.add_argument('--env',        default='hover',      type=str,             choices=['takeoff', 'hover', 'flythrugate', 'tune'], help='Help (default: ..)', metavar='')
+    parser.add_argument('--env',        default='hover',      type=str,             choices=['takeoff', 'hover', 'flythrugate', 'tune','flytoobstacle'], help='Help (default: ..)', metavar='')
     parser.add_argument('--algo',       default='ppo',        type=str,             choices=['a2c', 'ppo', 'sac', 'td3', 'ddpg'],        help='Help (default: ..)', metavar='')
     parser.add_argument('--obs',        default='kin',        type=ObservationType,                                                      help='Help (default: ..)', metavar='')
     parser.add_argument('--act',        default='one_d_rpm',  type=ActionType,                                                           help='Help (default: ..)', metavar='')
@@ -115,6 +116,12 @@ if __name__ == "__main__":
                                  )
     if env_name == "tune-aviary-v0":
         train_env = make_vec_env(TuneAviary,
+                                 env_kwargs=sa_env_kwargs,
+                                 n_envs=ARGS.cpu,
+                                 seed=0
+                                 )
+    if env_name == "flytoobstacle-aviary-v0":
+        train_env = make_vec_env(FlyToObstacleAviary,
                                  env_kwargs=sa_env_kwargs,
                                  n_envs=ARGS.cpu,
                                  seed=0
@@ -225,6 +232,12 @@ if __name__ == "__main__":
                                     n_envs=1,
                                     seed=0
                                     )
+        if env_name == "flytoobstacle-aviary-v0":
+            eval_env = make_vec_env(FlyToObstacleAviary,
+                                    env_kwargs=sa_env_kwargs,
+                                    n_envs=1,
+                                    seed=0
+                                    )
         eval_env = VecTransposeImage(eval_env)
 
     #### Train the model #######################################
@@ -253,4 +266,4 @@ if __name__ == "__main__":
     #### Print training progression ############################
     with np.load(filename+'/evaluations.npz') as data:
         for j in range(data['timesteps'].shape[0]):
-            print(str(data['timesteps'][j])+","+str(data['results'][j][0][0]))
+            print(str(data['timesteps'][j]))#+","+str(data['results'][j][0][0]))

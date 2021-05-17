@@ -61,7 +61,7 @@ class BaseAviary(gym.Env):
                  freq: int=240,
                  aggregate_phy_steps: int=1,
                  gui=False,
-                 record=False,
+                 record=True,
                  obstacles=False,
                  user_debug_gui=True,
                  vision_attributes=False,

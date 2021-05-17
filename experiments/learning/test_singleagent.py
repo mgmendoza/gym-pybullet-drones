@@ -37,6 +37,7 @@ from gym_pybullet_drones.envs.single_agent_rl.TakeoffAviary import TakeoffAviary
 from gym_pybullet_drones.envs.single_agent_rl.HoverAviary import HoverAviary
 from gym_pybullet_drones.envs.single_agent_rl.FlyThruGateAviary import FlyThruGateAviary
 from gym_pybullet_drones.envs.single_agent_rl.TuneAviary import TuneAviary
+from gym_pybullet_drones.envs.single_agent_rl.FlyToObstacleAviary import FlyToObstacleAviary
 from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType
 
 import shared_constants
@@ -102,8 +103,8 @@ if __name__ == "__main__":
 
     #### Show, record a video, and log the model's performance #
     test_env = gym.make(env_name,
-                        gui=True,
-                        record=False,
+                        gui=False,
+                        record=True,
                         aggregate_phy_steps=shared_constants.AGGR_PHY_STEPS,
                         obs=OBS,
                         act=ACT
@@ -129,10 +130,10 @@ if __name__ == "__main__":
         # if done: obs = test_env.reset() # OPTIONAL EPISODE HALT
     test_env.close()
     logger.save_as_csv("sa") # Optional CSV save
-    logger.plot()
+    #logger.plot()
 
-    # with np.load(ARGS.exp+'/evaluations.npz') as data:
-    #     print(data.files)
-    #     print(data['timesteps'])
-    #     print(data['results'])
-    #     print(data['ep_lengths'])
+    with np.load(ARGS.exp+'/evaluations.npz') as data:
+         print(data.files)
+         print(data['timesteps'])
+         print(data['results'])
+         print(data['ep_lengths'])
