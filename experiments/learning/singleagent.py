@@ -151,12 +151,12 @@ if __name__ == "__main__":
                     train_env,
                     policy_kwargs=onpolicy_kwargs,
                     verbose=1,
-                    tensorboard_log= './log/',
+                    tensorboard_log= filename+'/tb/',
                     ) if ARGS.obs == ObservationType.KIN else PPO(a2cppoCnnPolicy,
                                                                   train_env,
                                                                   policy_kwargs=onpolicy_kwargs,
                                                                   verbose=1,
-                                                                  tensorboard_log='./log/',
+                                                                  tensorboard_log=filename+'/tb/',
                                                                   )
         model.learn(total_timesteps=10000)
 
