@@ -11,7 +11,7 @@ To run the script, type in a terminal:
 Notes
 -----
 Use:
-    $ tensorboard --logdir ./results/save-<env>-<algo>-<obs>-<act>-<time-date>/tb/
+    $ tensorboard --logdir ./results/save-<env>-<algo>-<obs>-<act>-<time-date>/
 to see the tensorboard results at:
     http://localhost:6006/
 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
                                                                   verbose=1,
                                                                   tensorboard_log=filename+'/tb/',
                                                                   )
-        model.learn(total_timesteps=10000)
+        #model.learn(total_timesteps=10000)
 
     #### Off-policy algorithms #################################
     offpolicy_kwargs = dict(activation_fn=torch.nn.ReLU,
@@ -257,7 +257,7 @@ if __name__ == "__main__":
                                  )
     model.learn(total_timesteps=35000, #int(1e12),
                 callback=eval_callback,
-                log_interval=100,
+                #log_interval=100,
                 )
 
     #### Save the model ########################################
