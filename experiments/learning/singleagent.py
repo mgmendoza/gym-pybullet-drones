@@ -25,7 +25,7 @@ import numpy as np
 import gym
 import torch
 from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common.cmd_util import make_vec_env # Module cmd_util will be renamed to env_util https://github.com/DLR-RM/stable-baselines3/pull/197
+from stable_baselines3.common.env_util import make_vec_env # Module cmd_util will be renamed to env_util https://github.com/DLR-RM/stable-baselines3/pull/197
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecTransposeImage
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3 import A2C
@@ -39,7 +39,7 @@ from stable_baselines3.sac.policies import SACPolicy as sacMlpPolicy
 from stable_baselines3.sac import CnnPolicy as sacCnnPolicy
 from stable_baselines3.td3 import MlpPolicy as td3ddpgMlpPolicy
 from stable_baselines3.td3 import CnnPolicy as td3ddpgCnnPolicy
-from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback, StopTrainingOnRewardThreshold
+from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback, StopTrainingOnRewardThreshold,BaseCallback
 
 from gym_pybullet_drones.envs.single_agent_rl.TakeoffAviary import TakeoffAviary
 from gym_pybullet_drones.envs.single_agent_rl.HoverAviary import HoverAviary
@@ -150,14 +150,15 @@ if __name__ == "__main__":
         model = PPO(a2cppoMlpPolicy,
                     train_env,
                     policy_kwargs=onpolicy_kwargs,
-                    tensorboard_log=filename+'/tb/',
-                    verbose=1
+                    verbose=1,
+                    tensorboard_log= './log/',
                     ) if ARGS.obs == ObservationType.KIN else PPO(a2cppoCnnPolicy,
                                                                   train_env,
                                                                   policy_kwargs=onpolicy_kwargs,
-                                                                  tensorboard_log=filename+'/tb/',
-                                                                  verbose=1
+                                                                  verbose=1,
+                                                                  tensorboard_log='./log/',
                                                                   )
+        model.learn(total_timesteps=10000)
 
     #### Off-policy algorithms #################################
     offpolicy_kwargs = dict(activation_fn=torch.nn.ReLU,
