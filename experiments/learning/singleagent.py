@@ -159,7 +159,10 @@ if __name__ == "__main__":
                                                                   tensorboard_log=filename+'/tb/',
                                                                   )
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> peterpena/devel
 =======
 >>>>>>> peterpena/devel
 
@@ -261,7 +264,10 @@ if __name__ == "__main__":
     model.learn(total_timesteps=35000, #int(1e12),
                 callback=eval_callback,
 <<<<<<< HEAD
+<<<<<<< HEAD
                 #log_interval=100,
+=======
+>>>>>>> peterpena/devel
 =======
 >>>>>>> peterpena/devel
                 )
