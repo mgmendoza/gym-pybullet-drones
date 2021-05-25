@@ -7,8 +7,11 @@ from gym_pybullet_drones.envs.BaseAviary import DroneModel, Physics, BaseAviary
 from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType, BaseSingleAgentAviary
 
 
-TARGET_POS = [0.0,0.0,.1]
-
+TARGET_POS = [0.0,0.0,0.1]
+MAX_POS = 5.0
+ALPHA = 10 # distance
+BETA = 100 # velocity
+GAMMA = 10 # obstacle avoidance
 
 class FlyToObstacleAviary(BaseSingleAgentAviary):
     """Single agent RL problem: fly to a target."""
@@ -75,7 +78,7 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
         Flying to the duck 
 
         """
-        # super()._addObstacles()
+        super()._addObstacles()
         # p.loadURDF("duck_vhacd.urdf",
         #            TARGET_POS,
         #            p.getQuaternionFromEuler([0, 0, 0]),
@@ -97,13 +100,16 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
         targetPos = np.array(TARGET_POS)
         state = self._getDroneStateVector(0)
         stated = np.array(state[0:3])
-        print(stated)
-        distanceFromTar = targetPos - stated 
-        norm_ep_time = (self.step_counter/self.SIM_FREQ) / self.EPISODE_LEN_SEC# [0, 1)
+        distanceFromTar = targetPos - stated
+        #print(stated,distanceFromTar)
+        #norm_ep_time = (self.step_counter/self.SIM_FREQ) / self.EPISODE_LEN_SEC# [0, 1)
         #return -10 * np.linalg.norm(np.array([0, -2*norm_ep_time, 0.75])-state[0:3])**2
-        ret =  np.linalg.norm(targetPos - stated)
-        
-        return -ret / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2) 
+        ret = np.linalg.norm(targetPos - stated)
+        #ret /= MAX_POS
+        #np.clip(ret, 0, 1)
+        #print(ret,norm_ep_time)
+        #print(self.step_counter)
+        return (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * ret
 
     ################################################################################
     

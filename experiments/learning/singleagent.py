@@ -158,7 +158,10 @@ if __name__ == "__main__":
                                                                   verbose=1,
                                                                   tensorboard_log=filename+'/tb/',
                                                                   )
+<<<<<<< HEAD
 
+=======
+>>>>>>> peterpena/devel
 
     #### Off-policy algorithms #################################
     offpolicy_kwargs = dict(activation_fn=torch.nn.ReLU,
@@ -257,7 +260,10 @@ if __name__ == "__main__":
                                  )
     model.learn(total_timesteps=35000, #int(1e12),
                 callback=eval_callback,
+<<<<<<< HEAD
                 #log_interval=100,
+=======
+>>>>>>> peterpena/devel
                 )
 
     #### Save the model ########################################
