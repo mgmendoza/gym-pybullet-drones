@@ -158,7 +158,7 @@ if __name__ == "__main__":
                                                                   verbose=1,
                                                                   tensorboard_log=filename+'/tb/',
                                                                   )
-        #model.learn(total_timesteps=10000)
+
 
     #### Off-policy algorithms #################################
     offpolicy_kwargs = dict(activation_fn=torch.nn.ReLU,
