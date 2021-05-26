@@ -10,9 +10,10 @@ from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import Actio
 
 TARGET_POS = [1.0,0.0,0.1]
 MAX_DISTANCE = 1.0
-ALPHA = 5 # distance
+ALPHA = 1000 # distance
 BETA = 0 # velocity
 GAMMA = 0 # obstacle avoidance
+DISTANCE_EPSILON =  0.1
 
 class FlyToObstacleAviary(BaseSingleAgentAviary):
     """Single agent RL problem: fly to a target."""
@@ -80,7 +81,7 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
 
         """
         super()._addObstacles()
-        # p.loadURDF("duck_vhacd.urdf",
+        #p.loadURDF("duck_vhacd.urdf",
         #            TARGET_POS,
         #            p.getQuaternionFromEuler([0, 0, 0]),
         #            physicsClientId=self.CLIENT
@@ -106,10 +107,14 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
         dist_magnitude = np.linalg.norm(distanceFromTar)
         vel_alignment = np.dot(vel /  np.linalg.norm(vel), distanceFromTar / dist_magnitude)
         #dist_magnitude = np.clip(dist_magnitude / MAX_DISTANCE, 0, 1) # [0, 1]
+        if dist_magnitude <= DISTANCE_EPSILON:
+            reward = 1000
+        else:
+            reward = (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
+            ((ALPHA * dist_magnitude) - BETA * (vel_alignment * dist_magnitude))
         #reward = (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
         #    ((math.exp(ALPHA * dist_magnitude)-1) - BETA * (vel_alignment * dist_magnitude))
-        reward = -((math.exp(ALPHA * dist_magnitude)-1) - BETA * (vel_alignment * dist_magnitude))
-        print('Distance: {} Alignment: {} Reward: {}'.format(dist_magnitude, vel_alignment, reward))
+        #print('Distance: {} Alignment: {} Reward: {}'.format(dist_magnitude, vel_alignment, reward))
         return reward
 
     ################################################################################
