@@ -13,6 +13,7 @@ from gym_pybullet_drones.control.SimplePIDControl import SimplePIDControl
 
 class ActionType(Enum):
     """Action type enumeration class."""
+    DIS = "dis"
     RPM = "rpm"                 # RPMS
     DYN = "dyn"                 # Desired thrust and torques
     PID = "pid"                 # PID control
@@ -83,9 +84,9 @@ class BaseSingleAgentAviary(BaseAviary):
         dynamics_attributes = True if act in [ActionType.DYN, ActionType.ONE_D_DYN] else False
         self.OBS_TYPE = obs
         self.ACT_TYPE = act
-        self.EPISODE_LEN_SEC = 60
+        self.EPISODE_LEN_SEC = 10
         #### Create integrated controllers #########################
-        if act in [ActionType.PID, ActionType.VEL, ActionType.TUN, ActionType.ONE_D_PID]:
+        if act in [ActionType.DIS, ActionType.PID, ActionType.VEL, ActionType.TUN, ActionType.ONE_D_PID]:
             os.environ['KMP_DUPLICATE_LIB_OK']='True'
             if drone_model in [DroneModel.CF2X, DroneModel.CF2P]:
                 self.ctrl = DSLPIDControl(drone_model=DroneModel.CF2X)
@@ -122,12 +123,14 @@ class BaseSingleAgentAviary(BaseAviary):
                          dynamics_attributes=dynamics_attributes
                          )
         #### Set a limit on the maximum target speed ###############
-        if act == ActionType.VEL:
+        if act in  [ActionType.DIS, ActionType.VEL]:
             self.SPEED_LIMIT = 0.03 * self.MAX_SPEED_KMH * (1000/3600)
         #### Try _trajectoryTrackingRPMs exists IFF ActionType.TUN #
         if act == ActionType.TUN and not (hasattr(self.__class__, '_trajectoryTrackingRPMs') and callable(getattr(self.__class__, '_trajectoryTrackingRPMs'))):
                 print("[ERROR] in BaseSingleAgentAviary.__init__(), ActionType.TUN requires an implementation of _trajectoryTrackingRPMs in the instantiated subclass")
                 exit()
+        if act == ActionType.DIS:
+            self.VELOCITY_VECTORS = np.array([[1, 0, 0],[-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]])
 
     ################################################################################
 
@@ -181,13 +184,19 @@ class BaseSingleAgentAviary(BaseAviary):
             size = 3
         elif self.ACT_TYPE in [ActionType.ONE_D_RPM, ActionType.ONE_D_DYN, ActionType.ONE_D_PID]:
             size = 1
+        elif self.ACT_TYPE == ActionType.DIS:
+            size = 6
         else:
             print("[ERROR] in BaseSingleAgentAviary._actionSpace()")
             exit()
-        return spaces.Box(low=-1*np.ones(size),
-                          high=np.ones(size),
-                          dtype=np.float32
-                          )
+
+        if ActionType.DIS:
+            return spaces.Discrete(size)
+        else:
+            return spaces.Box(low=-1*np.ones(size),
+                            high=np.ones(size),
+                            dtype=np.float32
+                            )
 
     ################################################################################
 
@@ -246,6 +255,19 @@ class BaseSingleAgentAviary(BaseAviary):
                                                  cur_vel=state[10:13],
                                                  cur_ang_vel=state[13:16],
                                                  target_pos=state[0:3]+0.1*action
+                                                 )
+            return rpm
+        elif self.ACT_TYPE == ActionType.DIS:
+            state = self._getDroneStateVector(0)
+            v_unit_vector = self.VELOCITY_VECTORS[action]
+            rpm, _, _ = self.ctrl.computeControl(control_timestep=self.AGGR_PHY_STEPS*self.TIMESTEP,
+                                                 cur_pos=state[0:3],
+                                                 cur_quat=state[3:7],
+                                                 cur_vel=state[10:13],
+                                                 cur_ang_vel=state[13:16],
+                                                 target_pos=state[0:3], # same as the current position
+                                                 target_rpy=np.array([0,0,state[9]]), # keep current yaw
+                                                 target_vel=self.SPEED_LIMIT * v_unit_vector # target the desired velocity vector
                                                  )
             return rpm
         elif self.ACT_TYPE == ActionType.VEL:

@@ -105,10 +105,11 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
         distanceFromTar = targetPos - stated
         dist_magnitude = np.linalg.norm(distanceFromTar)
         vel_alignment = np.dot(vel /  np.linalg.norm(vel), distanceFromTar / dist_magnitude)
-        dist_magnitude = np.clip(dist_magnitude / MAX_DISTANCE, 0, 1) # [0, 1]
-        reward = (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
-            ((math.exp(ALPHA * dist_magnitude)-1) - BETA * (vel_alignment * dist_magnitude))
-        # print('Distance: {} Alignment: {} Reward: {}'.format(dist_magnitude, vel_alignment, reward))
+        #dist_magnitude = np.clip(dist_magnitude / MAX_DISTANCE, 0, 1) # [0, 1]
+        #reward = (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
+        #    ((math.exp(ALPHA * dist_magnitude)-1) - BETA * (vel_alignment * dist_magnitude))
+        reward = -((math.exp(ALPHA * dist_magnitude)-1) - BETA * (vel_alignment * dist_magnitude))
+        print('Distance: {} Alignment: {} Reward: {}'.format(dist_magnitude, vel_alignment, reward))
         return reward
 
     ################################################################################
