@@ -130,7 +130,7 @@ class BaseSingleAgentAviary(BaseAviary):
                 print("[ERROR] in BaseSingleAgentAviary.__init__(), ActionType.TUN requires an implementation of _trajectoryTrackingRPMs in the instantiated subclass")
                 exit()
         if act == ActionType.DIS:
-            self.VELOCITY_VECTORS = np.array([[1, 0, 0],[-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]])
+            self.VELOCITY_VECTORS = np.array([[1, 0, 0],[-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1],[0, 0, 0]])
 
     ################################################################################
 
@@ -185,7 +185,7 @@ class BaseSingleAgentAviary(BaseAviary):
         elif self.ACT_TYPE in [ActionType.ONE_D_RPM, ActionType.ONE_D_DYN, ActionType.ONE_D_PID]:
             size = 1
         elif self.ACT_TYPE == ActionType.DIS:
-            size = 6
+            size = 7
         else:
             print("[ERROR] in BaseSingleAgentAviary._actionSpace()")
             exit()

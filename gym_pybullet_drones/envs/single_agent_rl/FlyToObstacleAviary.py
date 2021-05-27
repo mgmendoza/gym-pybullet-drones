@@ -13,7 +13,7 @@ MAX_DISTANCE = 1.0
 ALPHA = 1000 # distance
 BETA = 0 # velocity
 GAMMA = 0 # obstacle avoidance
-DISTANCE_EPSILON =  0.1
+DISTANCE_EPSILON =  0.2
 
 class FlyToObstacleAviary(BaseSingleAgentAviary):
     """Single agent RL problem: fly to a target."""
@@ -114,6 +114,7 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
             ((ALPHA * dist_magnitude) - BETA * (vel_alignment * dist_magnitude))
         #reward = (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
         #    ((math.exp(ALPHA * dist_magnitude)-1) - BETA * (vel_alignment * dist_magnitude))
+        print('Distance',distanceFromTar[0], dist_magnitude,reward)
         #print('Distance: {} Alignment: {} Reward: {}'.format(dist_magnitude, vel_alignment, reward))
         return reward
 
