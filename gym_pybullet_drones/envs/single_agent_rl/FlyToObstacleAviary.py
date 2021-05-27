@@ -2,16 +2,18 @@ import os
 import numpy as np
 from gym import spaces
 import pybullet as p
+import math
 
 from gym_pybullet_drones.envs.BaseAviary import DroneModel, Physics, BaseAviary
 from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType, BaseSingleAgentAviary
 
 
-TARGET_POS = [0.0,0.0,0.1]
-MAX_DISTANCE = 5.0
-ALPHA = 10 # distance
-BETA = 100 # velocity
-GAMMA = 10 # obstacle avoidance
+TARGET_POS = [1.0,0.0,0.1]
+MAX_DISTANCE = 1.0
+ALPHA = 1000 # distance
+BETA = 0 # velocity
+GAMMA = 0 # obstacle avoidance
+DISTANCE_EPSILON =  0.2
 
 class FlyToObstacleAviary(BaseSingleAgentAviary):
     """Single agent RL problem: fly to a target."""
@@ -79,7 +81,7 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
 
         """
         super()._addObstacles()
-        # p.loadURDF("duck_vhacd.urdf",
+        #p.loadURDF("duck_vhacd.urdf",
         #            TARGET_POS,
         #            p.getQuaternionFromEuler([0, 0, 0]),
         #            physicsClientId=self.CLIENT
@@ -100,15 +102,21 @@ class FlyToObstacleAviary(BaseSingleAgentAviary):
         targetPos = np.array(TARGET_POS)
         state = self._getDroneStateVector(0)
         stated = np.array(state[0:3])
-        vel = self._getDroneStateVector(3)
-        vel = np.array(vel[0:3])
+        vel = np.array(state[10:13])
         distanceFromTar = targetPos - stated
         dist_magnitude = np.linalg.norm(distanceFromTar)
-        vel_alignment = np.dot(vel /  np.linalg.norm(vel), distanceFromTar / np.linalg.norm(dist_magnitude))
-        dist_magnitude = np.clip(dist_magnitude / MAX_DISTANCE, 0, 1) # [0, 1]
-
-        return (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
-            (ALPHA * ret + BETA * vel_alignment)
+        vel_alignment = np.dot(vel /  np.linalg.norm(vel), distanceFromTar / dist_magnitude)
+        #dist_magnitude = np.clip(dist_magnitude / MAX_DISTANCE, 0, 1) # [0, 1]
+        if dist_magnitude <= DISTANCE_EPSILON:
+            reward = 1000
+        else:
+            reward = (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
+            ((ALPHA * dist_magnitude) - BETA * (vel_alignment * dist_magnitude))
+        #reward = (-1 / (self.SIM_FREQ * (self.EPISODE_LEN_SEC/5)+ 2)) * \
+        #    ((math.exp(ALPHA * dist_magnitude)-1) - BETA * (vel_alignment * dist_magnitude))
+        print('Distance',distanceFromTar[0], dist_magnitude,reward)
+        #print('Distance: {} Alignment: {} Reward: {}'.format(dist_magnitude, vel_alignment, reward))
+        return reward
 
     ################################################################################
     
