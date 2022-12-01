@@ -1,12 +1,11 @@
 import os
-from datetime import datetime
 from enum import Enum
 import numpy as np
 from gym import spaces
 import pybullet as p
-import pybullet_data
 
-from gym_pybullet_drones.envs.BaseAviary import DroneModel, Physics, ImageType, BaseAviary
+from gym_pybullet_drones.envs.BaseAviary import BaseAviary
+from gym_pybullet_drones.utils.enums import DroneModel, Physics, ImageType
 from gym_pybullet_drones.utils.utils import nnlsRPM
 from gym_pybullet_drones.control.DSLPIDControl import DSLPIDControl
 from gym_pybullet_drones.control.SimplePIDControl import SimplePIDControl
@@ -185,6 +184,7 @@ class BaseSingleAgentAviary(BaseAviary):
             print("[ERROR] in BaseSingleAgentAviary._actionSpace()")
             exit()
         return spaces.Box(low=-1*np.ones(size),
+        # return spaces.Box(low=np.zeros(size),  # Alternative action space, see PR #32
                           high=np.ones(size),
                           dtype=np.float32
                           )
@@ -358,7 +358,8 @@ class BaseSingleAgentAviary(BaseAviary):
             # return obs
             ############################################################
             #### OBS SPACE OF SIZE 12
-            return np.hstack([obs[0:3], obs[7:10], obs[10:13], obs[13:16]]).reshape(12,)
+            ret = np.hstack([obs[0:3], obs[7:10], obs[10:13], obs[13:16]]).reshape(12,)
+            return ret.astype('float32')
             ############################################################
         else:
             print("[ERROR] in BaseSingleAgentAviary._computeObs()")

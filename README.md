@@ -8,14 +8,18 @@ This repository's `master` branch is actively developed, please `git pull` frequ
 
 [Simple](https://en.wikipedia.org/wiki/KISS_principle) OpenAI [Gym environment](https://gym.openai.com/envs/#classic_control) based on [PyBullet](https://github.com/bulletphysics/bullet3) for multi-agent reinforcement learning with quadrotors 
 
-<img src="files/readme_images/helix.gif" alt="formation flight" width="360"> <img src="files/readme_images/helix.png" alt="control info" width="450">
+<img src="files/readme_images/helix.gif" alt="formation flight" width="350"> <img src="files/readme_images/helix.png" alt="control info" width="450">
 
 - The default `DroneModel.CF2X` dynamics are based on [Bitcraze's Crazyflie 2.x nano-quadrotor](https://www.bitcraze.io/documentation/hardware/crazyflie_2_1/crazyflie_2_1-datasheet.pdf)
 
 - Everything after a `$` is entered on a terminal, everything after `>>>` is passed to a Python interpreter
 
+- To better understand how the PyBullet back-end works, refer to its [Quickstart Guide](https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#heading=h.2ye70wns7io3)
+
 - Suggestions and corrections are very welcome in the form of [issues](https://github.com/utiasDSL/gym-pybullet-drones/issues) and [pull requests](https://github.com/utiasDSL/gym-pybullet-drones/pulls), respectively
 
+> ## Why Reinforcement Learning of Quadrotor Control
+> A lot of recent RL research for continuous actions has focused on [policy gradient algorithms and actor-critic architectures](https://lilianweng.github.io/lil-log/2018/04/08/policy-gradient-algorithms.html). A quadrotor is (i) an easy-to-understand mobile robot platform whose (ii) control can be framed as a continuous states and actions problem but, beyond 1-dimension, (iii) it adds the complexity that many candidate policies lead to unrecoverable states, violating the assumption of the existence of a stationary state distribution on the entailed Markov chain.
 
 
 
@@ -32,9 +36,8 @@ This repository's `master` branch is actively developed, please `git pull` frequ
 |            *Hardware-In-The-Loop* | No                    | **Yes**                                       | No                                                  |
 |         *Fully steppable physics* | **Yes**               | No                                            | **Yes**                                             |
 |             *Aerodynamic effects* | Drag, downwash, ground| Drag                                          | Drag                                                |
-|          *OpenAI [`Gym`](https://github.com/openai/gym/blob/master/gym/core.py) interface* | **Yes** | No | **Yes**                                             |
+|          *OpenAI [`Gym`](https://github.com/openai/gym/blob/master/gym/core.py) interface* | **Yes** | **[Yes](https://github.com/microsoft/AirSim/pull/3215)** | **Yes**                                             |
 | *RLlib [`MultiAgentEnv`](https://github.com/ray-project/ray/blob/master/rllib/env/multi_agent_env.py) interface* | **Yes** | No | No                           |
-| *[PyMARL](https://github.com/oxwhirl/pymarl) integration* | *WIP*  | No                                   | No                                   |
 
 
 
@@ -67,7 +70,7 @@ Simulation **speed-up with respect to the wall-clock** when using
 
 
 ## Requirements and Installation
-The repo was written using *Python 3.7* with [`conda`](https://github.com/JacopoPan/a-minimalist-guide#install-conda) on *macOS 10.15* and tested on *macOS 11*, *Ubuntu 18.04*
+The repo was written using *Python 3.7* with [`conda`](https://github.com/JacopoPan/a-minimalist-guide#install-conda) on *macOS 10.15* and tested with *Python 3.8* on *macOS 12*, *Ubuntu 20.04*
 
 
 
@@ -75,26 +78,35 @@ The repo was written using *Python 3.7* with [`conda`](https://github.com/Jacopo
 ### On *macOS* and *Ubuntu*
 Major dependencies are [`gym`](https://gym.openai.com/docs/),  [`pybullet`](https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#), 
 [`stable-baselines3`](https://stable-baselines3.readthedocs.io/en/master/guide/quickstart.html), and [`rllib`](https://docs.ray.io/en/master/rllib.html)
-```
-pip3 install --upgrade numpy Pillow matplotlib cycler 
-pip3 install --upgrade gym pybullet stable_baselines3 'ray[rllib]'
-```
+
 Video recording requires to have [`ffmpeg`](https://ffmpeg.org) installed, on *macOS*
-```
+```bash
 $ brew install ffmpeg
 ```
 On *Ubuntu*
-```
+```bash
 $ sudo apt install ffmpeg
 ```
+
+*macOS* with Apple Silicon (like the M1 Air) can only install grpc with a minimum Python version of 3.9 and these two environment variables set:
+```bash
+$ export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1
+$ export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1
+```
+
 The repo is structured as a [Gym Environment](https://github.com/openai/gym/blob/master/docs/creating-environments.md)
 and can be installed with `pip install --editable`
 ```
+$ conda create -n drones python=3.8 # or 3.9 on Apple Silicon, see the comment on grpc above
+$ conda activate drones
+$ pip3 install --upgrade pip
 $ git clone https://github.com/utiasDSL/gym-pybullet-drones.git
 $ cd gym-pybullet-drones/
 $ pip3 install -e .
 ```
-
+<!--
+On Ubuntu and with a GPU available, optionally uncomment [line 203](https://github.com/utiasDSL/gym-pybullet-drones/blob/fab619b119e7deb6079a292a04be04d37249d08c/gym_pybullet_drones/envs/BaseAviary.py#L203) of `BaseAviary.py` to use the [`eglPlugin`](https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#heading=h.778da594xyte)
+-->
 
 
 
@@ -102,49 +114,55 @@ $ pip3 install -e .
 Check these step-by-step [instructions](https://github.com/utiasDSL/gym-pybullet-drones/tree/master/assignments#on-windows) written by Dr. Karime Pereida for *Windows 10*
 
 
+### On *Colab*
+Try the example scritps: 
+[`fly.py`](https://colab.research.google.com/drive/1hJlJElUuveD4U_GDGuNsX8NqDcl3jUGz?usp=sharing),
+[`learn.py`](https://colab.research.google.com/drive/1lLGAET4xx-7gGznanfGe0bQy4H7O9ScL?usp=sharing),
+[`downwash.py`](https://colab.research.google.com/drive/1Oj_RzJ5M_g4KrKFRJvcAhh62GJo78m9F?usp=sharing),
+[`compare.py`](https://colab.research.google.com/drive/1RzY6jG5F7ddknuyssI486TdMnOfq9Cjf?usp=sharing),
+[`ground_effect`](https://colab.research.google.com/drive/1BpLqPXnfk6lKiQ6YSNW74UQJ2MB4KwYJ?usp=sharing), and [`velocity`](https://colab.research.google.com/drive/1KN-fgwF3qjOCSIexHyQKBZ-rirtpt6ng?usp=sharing) contributed by [Spencer Teetaert](https://github.com/spencerteetaert)
+
 
 
 
 ## Examples
-There are 2 basic template scripts in `examples/`: `fly.py` and `learn.py`
+There are 2 basic template scripts in [`gym_pybullet_drones/examples/`](https://github.com/utiasDSL/gym-pybullet-drones/tree/master/gym_pybullet_drones/examples): `fly.py` and `learn.py`
 
-- `fly.py` runs an independent flight **using PID control** implemented in class [`DSLPIDControl`](https://github.com/utiasDSL/gym-pybullet-drones/tree/master/gym_pybullet_drones/control/DSLPIDControl.py)
+- `fly.py` [[try it on Colab](https://colab.research.google.com/drive/1hJlJElUuveD4U_GDGuNsX8NqDcl3jUGz?usp=sharing)] runs an independent flight **using PID control** implemented in class [`DSLPIDControl`](https://github.com/utiasDSL/gym-pybullet-drones/tree/master/gym_pybullet_drones/control/DSLPIDControl.py)
 ```
-$ cd gym-pybullet-drones/examples/
-$ pytho3 fly.py                             # Try 'python3 fly.py -h' to show the script's customizable parameters
-```
+$ cd gym-pybullet-drones/gym_pybullet_drones/examples/
+$ python3 fly.py                             # Try 'python3 fly.py -h' to show the script's customizable parameters
+``` 
 > Tip: use the GUI's sliders and button `Use GUI RPM` to override the control with interactive inputs
 
-<img src="files/readme_images/wp.gif" alt="sparse way points flight" width="360"> <img src="files/readme_images/wp.png" alt="control info" width="450">
+<img src="files/readme_images/wp.gif" alt="sparse way points flight" width="350"> <img src="files/readme_images/wp.png" alt="control info" width="450">
 
-<img src="files/readme_images/crash.gif" alt="yaw saturation" width="360"> <img src="files/readme_images/crash.png" alt="control info" width="450">
+<img src="files/readme_images/crash.gif" alt="yaw saturation" width="350"> <img src="files/readme_images/crash.png" alt="control info" width="450">
 
-- `learn.py` is an **RL example** to learn take-off using `stable-baselines3`'s [A2C](https://stable-baselines3.readthedocs.io/en/master/modules/a2c.html) or `rllib`'s [PPO](https://docs.ray.io/en/master/rllib-algorithms.html#ppo)
+- `learn.py` [[try it on Colab](https://colab.research.google.com/drive/1lLGAET4xx-7gGznanfGe0bQy4H7O9ScL?usp=sharing)] is an **RL example** to take-off using `stable-baselines3`'s [A2C](https://stable-baselines3.readthedocs.io/en/master/modules/a2c.html) or `rllib`'s [PPO](https://docs.ray.io/en/master/rllib-algorithms.html#ppo)
 ```
-$ cd gym-pybullet-drones/examples/
+$ cd gym-pybullet-drones/gym_pybullet_drones/examples/
 $ python3 learn.py                           # Try 'python3 learn.py -h' to show the script's customizable parameters
 ```
 <img src="files/readme_images/learn1.gif" alt="learning 1" width="400"> <img src="files/readme_images/learn2.gif" alt="learning 2" width="400">
 <img src="files/readme_images/learn3.gif" alt="learning 3" width="400"> <img src="files/readme_images/learn4.gif" alt="learning 4" width="400">
 
-Other scripts in folder `examples/` are
+Other scripts in folder [`gym_pybullet_drones/examples/`](https://github.com/utiasDSL/gym-pybullet-drones/tree/master/gym_pybullet_drones/examples) are
 
-- `downwash.py` is a flight script with only 2 drones, to test the downwash model
+- `downwash.py` [[try it on Colab](https://colab.research.google.com/drive/1Oj_RzJ5M_g4KrKFRJvcAhh62GJo78m9F?usp=sharing)] is a flight script with only 2 drones, to test the downwash model
 ```
-$ cd gym-pybullet-drones/examples/
+$ cd gym-pybullet-drones/gym_pybullet_drones/examples/
 $ python3 downwash.py                        # Try 'python3 downwash.py -h' to show the script's customizable parameters
 ```
 
-<img src="files/readme_images/downwash.gif" alt="downwash example" width="360"> <img src="files/readme_images/downwash.png" alt="control info" width="450">
+<img src="files/readme_images/downwash.gif" alt="downwash example" width="350"> <img src="files/readme_images/downwash.png" alt="control info" width="450">
 
-- `compare.py` which replays and compare to a trace saved in [`example_trace.pkl`](https://github.com/utiasDSL/gym-pybullet-drones/tree/master/files/example_trace.pkl)
+- `compare.py` [[try it on Colab](https://colab.research.google.com/drive/1RzY6jG5F7ddknuyssI486TdMnOfq9Cjf?usp=sharing)] which replays and compare to a trace saved in [`example_trace.pkl`](https://github.com/utiasDSL/gym-pybullet-drones/tree/master/files/example_trace.pkl)
 ```
-$ cd gym-pybullet-drones/examples/
+$ cd gym-pybullet-drones/gym_pybullet_drones/examples/
 $ python3 compare.py                         # Try 'python3 compare.py -h' to show the script's customizable parameters
 ```
-<img src="files/readme_images/trace_comparison.gif" alt="pid flight on sine trajectroy" width="360"> <img src="files/readme_images/trace_comparison.png" alt="control info" width="450">
-
-
+<img src="files/readme_images/trace_comparison.gif" alt="pid flight on sine trajectroy" width="350"> <img src="files/readme_images/trace_comparison.png" alt="control info" width="450">
 
 
 ## Experiments
@@ -317,7 +335,7 @@ Check the implementations of `_drag()`, `_groundEffect()`, and `_downwash()` in 
 
 ## RGB, Depth, and Segmentation Views
 
-<img src="files/readme_images/rgb.gif" alt="rgb view" width="270"> <img src="files/readme_images/dep.gif" alt="depth view" width="270"> <img src="files/readme_images/seg.gif" alt="segmentation view" width="270">
+<img src="files/readme_images/rgb.gif" alt="rgb view" width="260"> <img src="files/readme_images/dep.gif" alt="depth view" width="260"> <img src="files/readme_images/seg.gif" alt="segmentation view" width="260">
 
 
 
@@ -369,6 +387,7 @@ With ROS2 installed (on either macOS or Ubuntu, edit `ros2_and_pkg_setups.(zsh/b
 ```
 $ cd gym-pybullet-drones/ros2/
 $ source ros2_and_pkg_setups.zsh            # On macOS, on Ubuntu use $ source ros2_and_pkg_setups.bash
+                                            # Note that the second line in the script will throw an error (until you run calcon) that you can ignore
 $ colcon build --packages-select ros2_gym_pybullet_drones
 $ source ros2_and_pkg_setups.zsh            # On macOS, on Ubuntu use $ source ros2_and_pkg_setups.bash
 $ ros2 run ros2_gym_pybullet_drones aviary_wrapper
@@ -383,26 +402,26 @@ $ ros2 run ros2_gym_pybullet_drones random_control
 
 
 
-## Future Developments
-- Aviary with symbolic [CasADi](https://web.casadi.org) dynamics for learning-based control
-- Multiple downwash contributions (see `_downwash()` in class `BaseAviary`)
-- Heterogeneous multi-robot systems (import multiple URDF in `_housekeeping()` in class `BaseAviary`)
-- Interface to and template scripts using [PyMARL](https://github.com/oxwhirl/pymarl)
-- Google [Colaboratory](https://colab.research.google.com/notebooks/intro.ipynb) examples
+## TODOs (August 2022)
+- Test and update ROS 2 instrucitons for [Humble Hawksbill](https://docs.ros.org/en/foxy/Releases/Release-Humble-Hawksbill.html)
+- Create a list of FAQs from [Issues tagged as questions](https://github.com/utiasDSL/gym-pybullet-drones/issues?q=is%3Aissue+is%3Aopen+label%3Aquestion)
+
 
 
 
 
 ## Citation
-If you wish, please cite this work [(link)](https://arxiv.org/abs/2103.02142) as
+If you wish, please cite our work [(link)](https://arxiv.org/abs/2103.02142) as
 ```
-@MISC{panerati2021learning,
+@INPROCEEDINGS{panerati2021learning,
       title={Learning to Fly---a Gym Environment with PyBullet Physics for Reinforcement Learning of Multi-agent Quadcopter Control}, 
       author={Jacopo Panerati and Hehui Zheng and SiQi Zhou and James Xu and Amanda Prorok and Angela P. Schoellig},
+      booktitle={2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
       year={2021},
-      eprint={2103.02142},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO}
+      volume={},
+      number={},
+      pages={},
+      doi={}
 }
 ```
 
@@ -430,7 +449,7 @@ If you wish, please cite this work [(link)](https://arxiv.org/abs/2103.02142) as
 
 Bonus GIF for scrolling this far
 
-<img src="files/readme_images/2020.gif" alt="formation flight" width="360"> <img src="files/readme_images/2020.png" alt="control info" width="450">
+<img src="files/readme_images/2020.gif" alt="formation flight" width="350"> <img src="files/readme_images/2020.png" alt="control info" width="450">
 
 
 

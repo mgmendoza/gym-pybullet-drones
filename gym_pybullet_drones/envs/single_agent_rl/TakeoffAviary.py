@@ -1,7 +1,6 @@
 import numpy as np
-from gym import spaces
 
-from gym_pybullet_drones.envs.BaseAviary import DroneModel, Physics, BaseAviary
+from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType, BaseSingleAgentAviary
 
 class TakeoffAviary(BaseSingleAgentAviary):
@@ -73,6 +72,7 @@ class TakeoffAviary(BaseSingleAgentAviary):
 
         """
         state = self._getDroneStateVector(0)
+        # return state[2]/10.  # Alternative reward space, see PR #32
         if state[2] < 0.02:
             return -5
         else:
@@ -90,6 +90,8 @@ class TakeoffAviary(BaseSingleAgentAviary):
 
         """
         if self.step_counter/self.SIM_FREQ > self.EPISODE_LEN_SEC:
+        # Alternative done condition, see PR #32
+        # if (self.step_counter/self.SIM_FREQ > (self.EPISODE_LEN_SEC)) or ((self._getDroneStateVector(0))[2] < 0.05):
             return True
         else:
             return False

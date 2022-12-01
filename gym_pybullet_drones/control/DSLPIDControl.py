@@ -4,12 +4,13 @@ import pybullet as p
 from scipy.spatial.transform import Rotation
 
 from gym_pybullet_drones.control.BaseControl import BaseControl
-from gym_pybullet_drones.envs.BaseAviary import DroneModel, BaseAviary
+from gym_pybullet_drones.utils.enums import DroneModel
 
 class DSLPIDControl(BaseControl):
     """PID control class for Crazyflies.
 
-    Based on work conducted at UTIAS' DSL by SiQi Zhou and James Xu.
+    Based on work conducted at UTIAS' DSL. Contributors: SiQi Zhou, James Xu, 
+    Tracy Du, Mario Vukosavljev, Calvin Ngan, and Jingyuan Hou.
 
     """
 
@@ -249,8 +250,10 @@ class DSLPIDControl(BaseControl):
     
     ################################################################################
 
-    def _one23DInterface(thrust):
-        """Utility function interfacing 1, 2, or 3D use cases.
+    def _one23DInterface(self,
+                         thrust
+                         ):
+        """Utility function interfacing 1, 2, or 3D thrust input use cases.
 
         Parameters
         ----------

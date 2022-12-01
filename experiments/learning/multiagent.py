@@ -11,6 +11,7 @@ To run the script, type in a terminal:
 Notes
 -----
 Check Ray's status at:
+
     http://127.0.0.1:8265
 
 """
@@ -18,6 +19,7 @@ import os
 import time
 import argparse
 from datetime import datetime
+from sys import platform
 import subprocess
 import pdb
 import math
@@ -46,7 +48,7 @@ from ray.rllib.models import ModelCatalog
 from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.env.multi_agent_env import ENV_STATE
 
-from gym_pybullet_drones.envs.BaseAviary import DroneModel, Physics
+from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.envs.multi_agent_rl.FlockAviary import FlockAviary
 from gym_pybullet_drones.envs.multi_agent_rl.LeaderFollowerAviary import LeaderFollowerAviary
 from gym_pybullet_drones.envs.multi_agent_rl.MeetupAviary import MeetupAviary
@@ -140,11 +142,11 @@ if __name__ == "__main__":
     #### Define and parse (optional) arguments for the script ##
     parser = argparse.ArgumentParser(description='Multi-agent reinforcement learning experiments script')
     parser.add_argument('--num_drones',  default=2,                 type=int,                                                                 help='Number of drones (default: 2)', metavar='')
-    parser.add_argument('--env',         default='leaderfollower',  type=str,             choices=['leaderfollower', 'flock', 'meetup'],      help='Help (default: ..)', metavar='')
-    parser.add_argument('--obs',         default='kin',             type=ObservationType,                                                     help='Help (default: ..)', metavar='')
-    parser.add_argument('--act',         default='one_d_rpm',       type=ActionType,                                                          help='Help (default: ..)', metavar='')
-    parser.add_argument('--algo',        default='cc',              type=str,             choices=['cc'],                                     help='Help (default: ..)', metavar='')
-    parser.add_argument('--workers',     default=0,                 type=int,                                                                 help='Help (default: ..)', metavar='')        
+    parser.add_argument('--env',         default='leaderfollower',  type=str,             choices=['leaderfollower', 'flock', 'meetup'],      help='Task (default: leaderfollower)', metavar='')
+    parser.add_argument('--obs',         default='kin',             type=ObservationType,                                                     help='Observation space (default: kin)', metavar='')
+    parser.add_argument('--act',         default='one_d_rpm',       type=ActionType,                                                          help='Action space (default: one_d_rpm)', metavar='')
+    parser.add_argument('--algo',        default='cc',              type=str,             choices=['cc'],                                     help='MARL approach (default: cc)', metavar='')
+    parser.add_argument('--workers',     default=0,                 type=int,                                                                 help='Number of RLlib workers (default: 0)', metavar='')        
     ARGS = parser.parse_args()
 
     #### Save directory ########################################
@@ -153,9 +155,10 @@ if __name__ == "__main__":
         os.makedirs(filename+'/')
 
     #### Print out current git commit hash #####################
-    git_commit = subprocess.check_output(["git", "describe", "--tags"]).strip()
-    with open(filename+'/git_commit.txt', 'w+') as f:
-        f.write(str(git_commit))
+    if platform == "linux" or platform == "darwin":
+        git_commit = subprocess.check_output(["git", "describe", "--tags"]).strip()
+        with open(filename+'/git_commit.txt', 'w+') as f:
+            f.write(str(git_commit))
 
     #### Constants, and errors #################################
     if ARGS.obs==ObservationType.KIN:

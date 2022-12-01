@@ -1,7 +1,6 @@
 import numpy as np
-from gym import spaces
 
-from gym_pybullet_drones.envs.BaseAviary import DroneModel, Physics, BaseAviary
+from gym_pybullet_drones.utils.enums import DroneModel, Physics
 from gym_pybullet_drones.envs.single_agent_rl.BaseSingleAgentAviary import ActionType, ObservationType, BaseSingleAgentAviary
 
 class TuneAviary(BaseSingleAgentAviary):
@@ -19,7 +18,7 @@ class TuneAviary(BaseSingleAgentAviary):
                  gui=False,
                  record=False, 
                  obs: ObservationType=ObservationType.KIN,
-                 act: ActionType=ActionType.RPM
+                 act: ActionType=ActionType.TUN
                  ):
         """Initialization of a single agent RL environment.
 
